@@ -185,6 +185,26 @@ namespace fun {
      * vec = { { 1 }, { 2, 2 }, { 3, 3, 3 } }
      * cvec = concat( vec ) => { 1, 2, 2, 3, 3, 3 }
      */
+
+    template< typename A >
+    std::vector< A > concat( const std::vector< std::vector< A > >& src ) {
+        const auto size = std::accumulate( src.begin(), src.end(), 0,
+                []( std::size_t acc, const std::vector< A >& x ) {
+                    return acc + x.size();
+                    }
+                );
+
+        std::vector< A > dst;
+        dst.reserve( size );
+
+        for( auto& x : src )
+            std::move( x.begin(), x.end(), std::back_inserter( dst ) );
+
+        return dst;
+    }
+
+
+
     template< typename A >
     std::vector< A > concat( std::vector< std::vector< A > >&& src ) {
         const auto size = std::accumulate( src.begin(), src.end(), 0,
@@ -197,7 +217,7 @@ namespace fun {
         dst.reserve( size );
 
         for( auto& x : src )
-            std::move( x.begin(), x.end(), std::back_inserter( dst ) );
+            std::copy( x.begin(), x.end(), std::back_inserter( dst ) );
 
         return dst;
     }

@@ -88,3 +88,33 @@ BOOST_AUTO_TEST_CASE(iotaNegativeBegin) {
             vec.begin(), vec.end(),
             iota.begin(), iota.end() );
 }
+
+BOOST_AUTO_TEST_CASE(concat) {
+    std::vector< std::vector< int > > src = {
+        { 1 }, { 2, 2 }, { 3, 3, 3 }
+    };
+
+    std::vector< int > solution = { 1, 2, 2, 3, 3, 3 };
+
+    auto cat = fun::concat( src );
+
+    BOOST_CHECK_EQUAL( solution.size(), cat.size() );
+
+    BOOST_CHECK_EQUAL_COLLECTIONS(
+            cat.begin(), cat.end(),
+            solution.begin(), solution.end()
+    );
+}
+
+BOOST_AUTO_TEST_CASE(concatEmpty) {
+    std::vector< std::vector< int > > src = {};
+    std::vector< int > solution = {};
+
+    auto cat = fun::concat( src );
+
+    BOOST_CHECK_EQUAL( 0U, cat.size() );
+    BOOST_CHECK_EQUAL_COLLECTIONS(
+            cat.begin(), cat.end(),
+            solution.begin(), solution.end()
+    );
+}
