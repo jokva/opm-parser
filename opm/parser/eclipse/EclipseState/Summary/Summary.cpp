@@ -57,9 +57,9 @@ namespace Opm {
 
         const auto find = []( ecl_smspec_var_type v, const EclipseState& est ) {
             if( v == ECL_SMSPEC_WELL_VAR )
-                return fun::map( wellName, est.getSchedule()->getWells() );
+                return fun::map( wellName, est.getSchedule()->getWells() ).vector();
             else
-                return fun::map( groupName, est.getSchedule()->getGroups() );
+                return fun::map( groupName, est.getSchedule()->getGroups() ).vector();
         };
 
         const auto& item = keyword.getDataRecord().getDataItem();
@@ -67,7 +67,7 @@ namespace Opm {
             ? item.getData< std::string >()
             : find( var_type, es );
 
-        return fun::map( mknode, wgnames );
+        return fun::map( mknode, wgnames ).vector();
     }
 
     static inline std::vector< ERT::smspec_node > keywordF(
@@ -100,7 +100,7 @@ namespace Opm {
             return ERT::smspec_node( keyword.name(), dims.data(), ijk.data() );
         };
 
-        return fun::map( mkrecord, keyword );
+        return fun::map( mkrecord, keyword ).vector();
     }
 
     std::vector< ERT::smspec_node > handleKW( const DeckKeyword& keyword, const EclipseState& es ) {
@@ -122,7 +122,8 @@ namespace Opm {
         const auto handler = [&es]( const DeckKeyword& kw ) {
             return handleKW( kw, es );
         };
-        this->keywords = fun::concat( fun::map( handler, section ) );
+
+        this->keywords = fun::concat( fun::map( handler, section ).vector() );
     }
 
     Summary::const_iterator Summary::begin() const {

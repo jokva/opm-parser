@@ -24,6 +24,7 @@
 #include <iterator>
 #include <vector>
 #include <numeric>
+#include <utility>
 
 namespace Opm {
 
@@ -41,24 +42,31 @@ namespace fun {
      * map :: (a -> b) -> [a] -> [b]
      *
      * maps the elements [a] of the passed container C to [b], by using the
-     * passed function f :: a -> b. Works like map in haskell, lisp, python etc.
+     * passed function f :: a -> b. Works like map in haskell, lisp, python
+     * etc. In fact, it borrows lazyness from both haskell and python; map
+     * returns a *generator* that on-the-fly computes the values.
      *
-     * C can be any foreach-compatible container (that supports .begin,
-     * .end), but will always return a vector.
+     * C can be any foreach-compatible container (that supports .begin, .end),
+     * including previous invocations of fun::map and arrays (via std::begin).
+     * Carries iterator semantics, i.e. the map object is cheap to copy.
+     * fun::map is invalidated if any iterators in C are invalidated.
      *
      * F can be any Callable, that is both function pointer,
-     * operator()-providing class or std::function, including lambdas. F is
-     * typically passed by reference. F must be unary of type A (which must
-     * match what C::const_iterator::operator* returns) and have return
-     * type B (by value).
+     * operator()-providing class or std::function, including lambdas. F must
+     * be unary of type A (which must match what C::const_iterator::operator*
+     * returns) and have return type B (by value).
      *
      * In short, this function deal with vector allocation, resizing and
      * population based on some function f.
      *
-     * fun::map( f, vec ) is equivalent to:
+     * fun::map( f, vec ) is conceptually equivalent to:
      *  vector dst;
      *  for( auto& x : vec ) dst.push_back( f( x ) );
      *  return dst;
+     *
+     *  but in order to obtain the vector, it must be passed to a vector constructor:
+     *  auto m = fun::map( F, A );
+     *  std::vector< B > dst { m.begin(), m.end() }
      *
      * The behaviour is undefined if F has any side effects.
      *
@@ -66,29 +74,105 @@ namespace fun {
      *
      * int plus1( int x ) { return x + 1; }
      * base_vec = { 0, 1, 2, 3, 4 };
-     * vec = fun::map( &plus1, base_vec );
+     * m = fun::map( &plus1, base_vec );
      *
-     * vec => { 1, 2, 3, 4, 5 }
+     * m => { 1, 2, 3, 4, 5 }
      *
      * --
      *
      * int mul2 = []( int x ) { return x * 2; };
      * base_vec = { 0, 1, 2, 3, 4 };
-     * vec = fun::map( mul2, base_vec );
+     * m = fun::map( mul2, base_vec );
      *
-     * vec => { 0, 2, 4, 6, 8 };
-     *
+     * m => { 0, 2, 4, 6, 8 };
      */
-    template< typename F, typename C >
-    std::vector< typename std::result_of< F( typename C::const_iterator::value_type& ) >::type >
-    map( F f, const C& src ) {
-        using A = typename C::const_iterator::value_type;
-        using B = typename std::result_of< F( A& ) >::type;
-        std::vector< B > ret;
-        ret.reserve( src.size() );
 
-        std::transform( src.begin(), src.end(), std::back_inserter( ret ), f );
-        return ret;
+    template< typename F, typename Itr >
+    class map1 {
+        private:
+            using base = Itr;
+            using A = typename base::value_type;
+            using B = typename std::result_of< F( A ) >::type;
+
+        public:
+            class iterator;
+
+            template< typename C >
+            map1( F fn, const C& c ) : f( fn ),
+                                       fst( std::begin( c ) ),
+                                       lst( std::end( c ) ) {}
+
+            map1( F fn, base begin, base end ) : f( fn ),
+                                                 fst( begin ),
+                                                 lst( end ) {}
+
+            iterator begin() const {
+                return { f, fst };
+            }
+
+            iterator end() const {
+                return { f, lst };
+            }
+
+            size_t size() const {
+                return std::distance( fst, lst );
+            }
+
+            std::vector< B > vector() const {
+                return { this->begin(), this->end() };
+            };
+
+        private:
+            F f;
+            base fst;
+            base lst;
+    };
+
+    template< typename F, typename C >
+    class map1< F, C >::iterator {
+        private:
+            using base = map1< F, C >::base;
+
+        public:
+            using difference_type = typename base::difference_type;
+            using value_type = map1< F, C >::B;
+            using reference = value_type&;
+            using pointer = value_type*;
+            using iterator_category = std::forward_iterator_tag;
+
+            iterator& operator++() {
+                ++this->itr;
+                return *this;
+            }
+
+            value_type operator*() const {
+                return f( *this->itr );
+            }
+
+            bool operator==( const iterator& o ) const {
+                return this->itr == o.itr;
+            }
+
+            bool operator!=( const iterator& o ) const {
+                return !( *this == o );
+            }
+
+            iterator( F fn, base src ) : f( fn ), itr( src ) {}
+            iterator() = default;
+
+        private:
+            F f;
+            base itr;
+    };
+
+    template< typename F, typename C >
+    auto map( F f, const C& c ) -> map1< F, decltype( std::begin( c ) ) >  {
+        return { f, c };
+    }
+
+    template< typename F, typename Itr >
+    map1< F, Itr > map( F f, Itr begin, Itr end ) {
+        return { f, begin, end };
     }
 
     /*
