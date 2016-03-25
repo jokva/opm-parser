@@ -175,6 +175,133 @@ namespace fun {
         return { f, begin, end };
     }
 
+    template< typename Pred, typename Itr >
+    class filter1 {
+        private:
+            using base = Itr;
+            using A = typename base::value_type;
+
+        public:
+            class iterator;
+
+            template< typename C >
+            filter1( Pred fn, C&& c ) : pred( fn ),
+                                        fst( std::begin( c ) ),
+                                        lst( std::end( c ) ) {}
+
+            filter1( Pred fn, base begin, base end ) : pred( fn ),
+                                                       fst( begin ),
+                                                       lst( end ) {}
+
+            iterator begin() const {
+                return { pred, fst, lst };
+            }
+
+            iterator end() const {
+                return { pred, lst, lst };
+            }
+
+            std::vector< A > vector() const {
+                return { this->begin(), this->end() };
+            };
+
+            size_t size() const {
+                const auto incr = []( int acc, A ) { return acc + 1; };
+                return std::accumulate( this->begin(), this->end(), 0, incr );
+            }
+
+        private:
+            Pred pred;
+            base fst;
+            base lst;
+    };
+
+    /*
+     * filter :: (a -> bool) -> [a] -> [a]
+     *
+     * return all elements where pred evaluates to true. O(n) complexity, with
+     * the following characteristics:
+     * * Construction takes O(n) dereferences of [a], i.e. it needs to find the
+     * first element in the sequence satisifying pred. Without this guarantee,
+     * algorithms taking begin/end or for( auto : filter ) wouldn't work when
+     * none of the elements satisified the predicate p.
+     * * increment/advance has algorithmically linear complexity.
+     * * will invoke operator* up-to twice per container assuming every match
+     *   is accessed. This means that if dereferencing the underlying iterator
+     *   is -very- expensive (i.e. with some complex) fun::map you might
+     *   consider pre-filtering the sequence over some other criteria.
+     *
+     * size() is linear in complexity, since it (obviously) has to determine
+     * how many elements match the predicate, and is not suited for determining
+     * preallocation of space for the result values for expensive functions
+     * (but might be valuable for simple functions)
+     *
+     * Assumes liveness and follows regular iterator invalidation rules.
+     *
+     * Examples:
+     *
+     * int eq1( int x ) { return x == 1; }
+     * std::vector< int > src = { 0, 1, 2, 3, 4 }
+     *
+     * std::vector< int > dst;
+     * for( auto x : src )
+     *   if( x == 1 ) dst.push_back( x );
+     *
+     * dst == fun::filter( eq1, src );
+     *
+     * --
+     *
+     * fun::filter( []( int x ) { return x < 2; }, { 0, 1, 2, 3, 4, 5 } )
+     * => { 0, 1 }
+     */
+
+    template< typename Pred, typename C >
+    class filter1< Pred, C >::iterator {
+        private:
+            using base = filter1< Pred, C >::base;
+
+        public:
+            using difference_type = typename base::difference_type;
+            using value_type = filter1< Pred, C >::A;
+            using reference = value_type&;
+            using pointer = value_type*;
+            using iterator_category = std::forward_iterator_tag;
+
+            iterator& operator++() {
+                while( ++this->itr != this->lst && !this->pred( *this->itr ) );
+                return *this;
+            }
+
+            value_type operator*() const {
+                return *this->itr;
+            }
+
+            bool operator==( const iterator& o ) const {
+                return this->itr == o.itr;
+            }
+
+            bool operator!=( const iterator& o ) const {
+                return !( *this == o );
+            }
+
+            iterator( Pred p, base src, base lst ) :
+                pred( p ),
+                itr( std::find_if( src, lst, p ) ),
+                lst( lst ) {}
+
+            iterator() = default;
+
+        private:
+            Pred pred;
+            base itr;
+            base lst;
+    };
+
+    template< typename Pred, typename C >
+    auto filter( Pred f, C&& c ) -> filter1< Pred, decltype( std::begin( c ) ) >  {
+        return { f, c };
+    }
+
     /*
      * concat :: [[a]] -> [a]
      *

@@ -52,6 +52,58 @@ BOOST_AUTO_TEST_CASE(iotaEqualCollections) {
             fun::iota( 5 ).begin(), fun::iota( 5 ).end() );
 }
 
+BOOST_AUTO_TEST_CASE(filter) {
+    std::vector< int > vec = { 0, 1, 2, 3, 4, 0 };
+    auto flt = fun::filter( []( int x ) { return x == 0; }, vec );
+
+    std::vector< int > sol = { 0, 0 };
+
+    BOOST_CHECK_EQUAL_COLLECTIONS(
+            sol.begin(), sol.end(),
+            flt.begin(), flt.end() );
+}
+
+BOOST_AUTO_TEST_CASE(filterTerminates) {
+    std::vector< int > vec = { 0, 1, 2, 3, 4, 0 };
+    for( auto x : fun::filter( []( int x ){ return x == 6; }, vec ) ) {
+        ++x;
+    }
+}
+
+BOOST_AUTO_TEST_CASE(filterSize) {
+    std::vector< int > vec = { 0, 1, 2, 3, 4, 0 };
+    auto f = fun::filter( []( int x ){ return x == 6; }, vec );
+    auto g = fun::filter( []( int x ){ return x == 0; }, vec );
+
+    BOOST_CHECK_EQUAL( 0U, f.size() );
+    BOOST_CHECK_EQUAL( 2U, g.size() );
+}
+
+BOOST_AUTO_TEST_CASE(mapAndFilter) {
+    std::vector< int > vec = { 0, 1, 2, 3, 4, 0 };
+    const auto add1 = []( int x ) { return x + 1; };
+    auto map1 = fun::map( add1, vec );
+
+    auto f = fun::filter( []( int x ){ return x == 6; }, map1 );
+    auto g = fun::filter( []( int x ){ return x == 1; }, map1 );
+
+    BOOST_CHECK_EQUAL( 0U, f.size() );
+    BOOST_CHECK_EQUAL( 2U, g.size() );
+}
+
+BOOST_AUTO_TEST_CASE(filterIota) {
+    const auto gt2 = []( int x ) { return x > 2; };
+
+    std::vector< int > sol;
+    for( auto x : fun::iota( 10 ) ) {
+        if( x > 2 ) sol.push_back( x );
+    }
+    auto flt = fun::filter( gt2, fun::iota( 10 ) );
+    BOOST_CHECK_EQUAL_COLLECTIONS(
+            sol.begin(), sol.end(),
+            flt.begin(), flt.end() );
+}
+
 BOOST_AUTO_TEST_CASE(iotaForeach) {
     /* this test is mostly a syntax verification test */
 
