@@ -161,10 +161,10 @@ BOOST_AUTO_TEST_CASE(TestConcat) {
                                   expected.begin(), expected.end());
 }
 
-
 BOOST_AUTO_TEST_CASE(TestConcatMap) {
-    std::vector<int> input = {1,2,3};
-    auto conc = fun::concat( fun::map( []( int x ) { return std::vector<int>( x,x ); } , input));
+    fun::iota input( 1, 4 );
+    auto f = []( int x ) { return std::vector< int >( x, x ); };
+    auto conc = fun::concat( fun::map( f, input ) );
 
     std::vector<int> expected = {1,2,2,3,3,3};
     BOOST_CHECK_EQUAL_COLLECTIONS(conc.begin(), conc.end(),
@@ -172,6 +172,34 @@ BOOST_AUTO_TEST_CASE(TestConcatMap) {
 
 }
 
+BOOST_AUTO_TEST_CASE(concatEmpty) {
+    std::vector< std::vector< int > > src = {};
+    std::vector< int > solution = {};
+
+    auto cat = fun::concat( src );
+
+    BOOST_CHECK_EQUAL( 0U, cat.size() );
+    BOOST_CHECK_EQUAL_COLLECTIONS(
+            cat.begin(), cat.end(),
+            solution.begin(), solution.end()
+    );
+}
+
+BOOST_AUTO_TEST_CASE(concatEmptySubseq) {
+    std::vector< int > sol1 = {};
+    std::vector< int > sol2 = { 1, 2, 3 };
+
+    std::vector< std::vector< int > > empty_subseq = { {}, {}, {} };
+    std::vector< std::vector< int > > partially_empty = { {}, { 1, 2, 3 }, {} };
+
+    auto cat1 = fun::concat( empty_subseq );
+    auto cat2 = fun::concat( partially_empty );
+
+    BOOST_CHECK_EQUAL_COLLECTIONS(
+            cat1.begin(), cat1.end(), sol1.begin(), sol1.end() );
+    BOOST_CHECK_EQUAL_COLLECTIONS(
+            cat2.begin(), cat2.end(), sol2.begin(), sol2.end() );
+}
 
 
 BOOST_AUTO_TEST_CASE(iotaEqualCollections) {

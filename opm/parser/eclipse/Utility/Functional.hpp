@@ -181,26 +181,37 @@ namespace fun {
     /*
      * concat :: [[a]] -> [a]
      *
-     * A primitive concat taking a vector of vectors, flattened into a
-     * single 1 dimensional vector. Moves all the elements so no unecessary
-     * copies are done.
+     * A primitive concat taking a collection of collections, flattened into a
+     * single 1 dimensional vector. If possible, moves all the elements so no
+     * unecessary copies are done.
      *
      * vec = { { 1 }, { 2, 2 }, { 3, 3, 3 } }
      * cvec = concat( vec ) => { 1, 2, 2, 3, 3, 3 }
      */
-    template< typename A >
-    std::vector< A > concat( std::vector< std::vector< A > >&& src ) {
-        const auto size = std::accumulate( src.begin(), src.end(), 0,
-                []( std::size_t acc, const std::vector< A >& x ) {
-                    return acc + x.size();
-                    }
-                );
+    template< typename T >
+    auto concat( T&& src ) -> std::vector< typename std::decay<
+            decltype( *std::begin( *std::begin( src ) ) )
+        >::type > {
+
+        using A = typename std::decay< decltype( *std::begin( *std::begin( src ) ) ) >::type;
 
         std::vector< A > dst;
-        dst.reserve( size );
-
-        for( auto& x : src )
+        for( auto&& x : src )
             std::move( x.begin(), x.end(), std::back_inserter( dst ) );
+
+        return dst;
+    }
+
+    template< typename T >
+    auto concat( T& src ) -> std::vector< typename std::decay<
+            decltype( *std::begin( *std::begin( src ) ) )
+        >::type > {
+
+        using A = typename std::decay< decltype( *std::begin( *std::begin( src ) ) ) >::type;
+
+        std::vector< A > dst;
+        for( auto&& x : src )
+            std::copy( x.begin(), x.end(), std::back_inserter( dst ) );
 
         return dst;
     }
