@@ -63,10 +63,12 @@ namespace Opm {
             return !schedule.hasWell( name );
         };
 
+        const auto wells = schedule.getWells();
+
         const auto& item = keyword.getDataRecord().getDataItem();
         auto wnames = item.hasValue( 0 )
             ? item.getData< std::string >()
-            : fun::map( wellName, schedule.getWells() );
+            : fun::map( wellName, wells );
 
         /* filter all requested names that were not in the Deck */
         wnames.erase(
@@ -88,10 +90,12 @@ namespace Opm {
             return !schedule.hasGroup( name );
         };
 
+        const auto groups = schedule.getGroups();
+
         const auto& item = keyword.getDataRecord().getDataItem();
         auto gnames = item.hasValue( 0 )
             ? item.getData< std::string >()
-            : fun::map( groupName, schedule.getGroups() );
+            : fun::map( groupName, groups );
 
         gnames.erase(
                 std::remove_if( gnames.begin(), gnames.end(), missing ),
