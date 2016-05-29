@@ -31,6 +31,116 @@
 
 using namespace Opm;
 
+struct copyable {
+    copyable( int v ) : x( v ) {}
+    copyable( const copyable& other ) :
+        x( other.x ),
+        copies( other.copies + 1 ),
+        moves( other.moves )
+    {}
+
+    copyable( copyable&& other ) :
+        x( other.x ),
+        copies( other.copies ),
+        moves( other.moves + 1 )
+    {}
+
+    int x;
+    int copies = 0;
+    int moves = 0;
+};
+
+struct noncopyable {
+    noncopyable( int v ) : x( v ) {}
+    noncopyable( noncopyable&& other ) :
+        x( other.x ),
+        moves( other.moves + 1 )
+    {}
+    noncopyable( const noncopyable& ) = delete;
+
+    int x;
+    int moves = 0;
+};
+
+copyable plus1move( copyable&& c ) {
+    auto next = std::move( c );
+    next.x += 1;
+    return next;
+}
+
+noncopyable plus2move( noncopyable&& c ) {
+    auto next = std::move( c );
+    next.x += 1;
+    return next;
+}
+
+copyable plus1copy( const copyable& c ) {
+    auto next = c;
+    next.x += 1;
+    return next;
+}
+
+copyable& plus1ref( copyable& c ) {
+    c.x += 1;
+    return c;
+}
+
+copyable mkcopyable( int x ) {
+    return { x };
+}
+
+noncopyable mkncopyable( int x ) {
+    return { x };
+}
+
+BOOST_AUTO_TEST_CASE(mapCopy) {
+    std::vector< copyable > copyseq = fun::map( mkcopyable, fun::iota( 5 ) );
+
+    auto m = fun::map( plus1copy, copyseq );
+    std::vector< copyable > copy { m.begin(), m.end() };
+
+    for( const auto& c : copyseq )
+        BOOST_CHECK_EQUAL( c.copies, 0 );
+
+    for( const auto& c : copy )
+        BOOST_CHECK_EQUAL( c.copies, 1 );
+
+    for( const auto& c : m )
+        BOOST_CHECK_EQUAL( c.copies, 1 );
+}
+
+BOOST_AUTO_TEST_CASE(mapMove) {
+    std::vector< copyable > moveseq = fun::map( mkcopyable, fun::iota( 5 ) );
+    std::vector< noncopyable > ncseq = fun::map( mkncopyable, fun::iota( 5 ) );
+
+    for( const auto& c : moveseq )
+        BOOST_CHECK_EQUAL( c.copies, 0 );
+
+
+    /* class has copy constructor, but move constructor should be used */
+    auto m = fun::map( plus1move, std::move( moveseq ) );
+    /* should work even in absence of copy constructor */
+    auto n = fun::map( plus2move, std::move( ncseq ) );
+    std::vector< copyable > cpmove { m.begin(), m.end() };
+    std::vector< noncopyable > ncmove { n.begin(), n.end() };
+
+    for( const auto& c : m )
+        BOOST_CHECK_EQUAL( c.copies, 0 );
+}
+
+BOOST_AUTO_TEST_CASE(mapStdMove) {
+    std::vector< copyable > srcseq = fun::map( mkcopyable, fun::iota( 5 ) );
+    std::vector< copyable > dstseq;
+    // The reserve is important to avoid copies during realloc
+    // which would fail the otherwise successful test
+    dstseq.reserve( srcseq.size() );
+
+    auto m = fun::map( plus1ref, srcseq );
+    std::move( m.begin(), m.end(), std::back_inserter( dstseq ) );
+
+    for( const auto& c : dstseq )
+        BOOST_CHECK_EQUAL( c.copies, 0 );
+}
 
 BOOST_AUTO_TEST_CASE(TestMap) {
     std::map<std::string, int> m = { {"C", 3}, {"B" , 2} , {"A" , 1}};
@@ -107,7 +217,8 @@ BOOST_AUTO_TEST_CASE(iotaWithMap) {
     const auto plus1 = []( int x ) { return x + 1; };
 
     std::vector< int > vec = { 1, 2, 3, 4, 5 };
-    auto vec_iota = fun::map( plus1, fun::iota( 5 ) );
+    fun::iota iota( 5 );
+    auto vec_iota = fun::map( plus1, iota );
 
     BOOST_CHECK_EQUAL_COLLECTIONS(
             vec_iota.begin(), vec_iota.end(),

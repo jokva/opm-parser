@@ -41,54 +41,141 @@ namespace fun {
      * map :: (a -> b) -> [a] -> [b]
      *
      * maps the elements [a] of the passed container C to [b], by using the
-     * passed function f :: a -> b. Works like map in haskell, lisp, python etc.
+     * passed function f :: a -> b. Works like map in haskell, lisp, python
+     * etc. In fact, it borrows lazyness from both haskell and python; map
+     * returns a *generator* that on-the-fly computes the values.
      *
-     * C can be any foreach-compatible container (that supports .begin,
-     * .end), but will always return a vector.
+     * C can be any foreach-compatible container (that supports .begin, .end),
+     * including previous invocations of fun::map and arrays (via std::begin).
+     * Carries iterator semantics, i.e. the map object is cheap to copy.
+     * fun::map is invalidated if any iterator used to create it is
+     * invalidated.
      *
      * F can be any Callable, that is both function pointer,
-     * operator()-providing class or std::function, including lambdas. F is
-     * typically passed by reference. F must be unary of type A (which must
-     * match what C::const_iterator::operator* returns) and have return
-     * type B (by value).
+     * operator()-providing class or std::function, including lambdas. F must
+     * be unary of type A (which must match what C::iterator::operator*
+     * returns).
      *
-     * In short, this function deal with vector allocation, resizing and
-     * population based on some function f.
-     *
-     * fun::map( f, vec ) is equivalent to:
+     * fun::map( f, vec ) is conceptually equivalent to:
      *  vector dst;
      *  for( auto& x : vec ) dst.push_back( f( x ) );
      *  return dst;
      *
+     * but in order to obtain the vector, it must be passed to a vector constructor:
+     * auto m = fun::map( F, A );
+     * std::vector< B > dst { m.begin(), m.end() }
+     *
+     * or implicit conversion:
+     * std::vector< B > dst = fun::map( F, A );
+     *
      * The behaviour is undefined if F has any side effects.
+     *
+     * fun::map is compatible with move iterators, and movability will be
+     * inferred if possible.
      *
      * --
      *
      * int plus1( int x ) { return x + 1; }
      * base_vec = { 0, 1, 2, 3, 4 };
-     * vec = fun::map( &plus1, base_vec );
+     * m = fun::map( &plus1, base_vec );
      *
-     * vec => { 1, 2, 3, 4, 5 }
+     * m => { 1, 2, 3, 4, 5 }
      *
      * --
      *
-     * int mul2 = []( int x ) { return x * 2; };
+     * auto mul2 = []( int x ) { return x * 2; };
      * base_vec = { 0, 1, 2, 3, 4 };
-     * vec = fun::map( mul2, base_vec );
+     * m = fun::map( mul2, base_vec );
      *
-     * vec => { 0, 2, 4, 6, 8 };
+     * m => { 0, 2, 4, 6, 8 };
      *
+     * --
+     *
+     * auto a = std::vector< A >;
+     * auto f = []( C&& c ) { return foo( std::move( c ) ); }
+     * m = fun::map( f, std::move( a ) );
+     *
+     * m => [ foo( a1 ), foo( a2 ) ]; a will be moved from.
      */
-    template< typename F, typename C >
-    std::vector< typename std::result_of< F( typename C::const_iterator::value_type& ) >::type >
-    map( F f, const C& src ) {
-        using A = typename C::const_iterator::value_type;
-        using B = typename std::result_of< F( A& ) >::type;
-        std::vector< B > ret;
-        ret.reserve( src.size() );
 
-        std::transform( src.begin(), src.end(), std::back_inserter( ret ), f );
-        return ret;
+    template< typename F, typename Itr >
+    class map1 {
+        private:
+            using base = Itr;
+            using A = decltype( *std::declval< base >() );
+            using B = typename std::result_of< F( A ) >::type;
+            using B_val = typename std::remove_reference< B >::type;
+
+        public:
+            class iterator;
+
+            map1( F fn, base begin, base end ) : f( fn ),
+                                                 fst( begin ),
+                                                 lst( end ) {}
+
+            iterator begin() const { return { f, fst }; }
+            iterator end() const { return { f, lst }; }
+
+            iterator begin() { return { f, fst }; }
+            iterator end() { return { f, lst }; }
+
+            size_t size() const {
+                return std::distance( fst, lst );
+            }
+
+            operator std::vector< B_val >() const {
+                return { this->begin(), this->end() };
+            }
+
+        private:
+            F f;
+            base fst;
+            base lst;
+    };
+
+    template< typename F, typename C >
+    class map1< F, C >::iterator : public map1< F, C >::base {
+        private:
+            using base = map1< F, C >::base;
+
+        public:
+            using value_type = map1< F, C >::B_val;
+            using reference = value_type&;
+            using pointer = value_type*;
+
+            map1< F, C >::B operator*() const {
+                return f( this->base::operator*() );
+            }
+
+            iterator( F fn, base src ) : base( src ), f( fn ) {}
+            iterator() = default;
+
+        private:
+            F f;
+    };
+
+
+    template< typename C >
+    struct mkitr {
+        private:
+            using identity = decltype( std::declval< C >().begin() );
+            using move = typename std::move_iterator< identity >;
+        public:
+            using itr = typename std::conditional<
+                            std::is_rvalue_reference< C >::value,
+                            move,
+                            identity >::type;
+
+            static itr begin( C& c ) { return itr( std::begin( c ) ); }
+            static itr end( C& c ) { return itr( std::end( c ) ); }
+    };
+
+    template< typename F, typename C >
+    auto map( F f, C&& c ) -> map1< F, typename mkitr< decltype( c ) >::itr > {
+        return { f,
+            mkitr< decltype( c ) >::begin( c ),
+            mkitr< decltype( c ) >::end( c )
+        };
     }
 
     /*
