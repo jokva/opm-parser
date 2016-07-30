@@ -78,11 +78,11 @@ namespace Opm {
 
     RawRecord::RawRecord(const string_view& singleRecordString,
                          const std::string& fileName,
-                         const std::string& keywordName) :
+                         const fst::string& keyword ) :
         m_sanitizedRecordString( singleRecordString ),
         m_recordItems( splitSingleRecordString( m_sanitizedRecordString ) ),
         m_fileName(fileName),
-        m_keywordName(keywordName)
+        m_keywordName(keyword)
     {
 
         if( !even_quotes( singleRecordString ) )
@@ -96,7 +96,7 @@ namespace Opm {
         return m_fileName;
     }
 
-    const std::string& RawRecord::getKeywordName() const {
+    const fst::string& RawRecord::getKeywordName() const {
         return m_keywordName;
     }
 

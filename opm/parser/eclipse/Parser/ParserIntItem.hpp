@@ -48,7 +48,7 @@ namespace Opm {
 
         std::string createCode() const override;
         void inlineClass(std::ostream& os, const std::string& indent) const override;
-        std::string inlineClassInit(const std::string& parentClass) const override;
+        std::string inlineClassInit(const fst::string& parentClass) const override;
 
         int  getDefault() const;
         bool hasDefault() const;

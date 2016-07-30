@@ -45,7 +45,7 @@ namespace Opm {
 
     template< typename T >
     GridPropertySupportedKeywordInfo< T >::GridPropertySupportedKeywordInfo(
-            const std::string& name,
+            const fst::string& name,
             std::function< std::vector< T >( size_t ) > init,
             std::function< void( std::vector< T >& ) > post,
             const std::string& dimString ) :
@@ -57,7 +57,7 @@ namespace Opm {
 
     template< typename T >
     GridPropertySupportedKeywordInfo< T >::GridPropertySupportedKeywordInfo(
-            const std::string& name,
+            const fst::string& name,
             std::function< std::vector< T >( size_t ) > init,
             const std::string& dimString ) :
         m_keywordName( name ),
@@ -68,7 +68,7 @@ namespace Opm {
 
     template< typename T >
     GridPropertySupportedKeywordInfo< T >::GridPropertySupportedKeywordInfo(
-            const std::string& name,
+            const fst::string& name,
             const T defaultValue,
             const std::string& dimString ) :
         m_keywordName( name ),
@@ -79,7 +79,7 @@ namespace Opm {
 
     template< typename T >
     GridPropertySupportedKeywordInfo< T >::GridPropertySupportedKeywordInfo(
-            const std::string& name,
+            const fst::string& name,
             const T defaultValue,
             std::function< void( std::vector< T >& ) > post,
             const std::string& dimString ) :
@@ -90,7 +90,7 @@ namespace Opm {
     {}
 
     template< typename T >
-    const std::string& GridPropertySupportedKeywordInfo< T >::getKeywordName() const {
+    const fst::string& GridPropertySupportedKeywordInfo< T >::getKeywordName() const {
         return this->m_keywordName;
     }
 
@@ -322,7 +322,7 @@ namespace Opm {
     }
 
     template< typename T >
-    const std::string& GridProperty< T >::getKeywordName() const {
+    const fst::string& GridProperty< T >::getKeywordName() const {
         return m_kwInfo.getKeywordName();
     }
 

@@ -22,6 +22,7 @@
 #define KEYWORD_GENERATOR_HPP
 
 #include <string>
+#include <opm/fst.hpp>
 
 namespace Opm {
 
@@ -34,7 +35,7 @@ namespace Opm {
 
         static void ensurePath( const std::string& file_name);
         static std::string endTest();
-        static std::string startTest(const std::string& test_name);
+        static std::string startTest(const fst::string& test_name);
         static std::string headerHeader( const std::string& );
         static bool updateFile(const std::stringstream& newContent, const std::string& filename);
 

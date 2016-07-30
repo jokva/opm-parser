@@ -41,11 +41,8 @@ namespace Opm {
     }
 
 
-    bool KeywordLoader::hasKeyword(const std::string& keyword) const {
-        if (m_keywords.find( keyword ) == m_keywords.end())
-            return false;
-        else
-            return true;
+    bool KeywordLoader::hasKeyword(const fst::string& keyword) const {
+        return m_keywords.find( keyword ) != m_keywords.end();
     }
 
 
@@ -58,7 +55,7 @@ namespace Opm {
     }
 
 
-    std::string KeywordLoader::getJsonFile(const std::string& keyword) const {
+    std::string KeywordLoader::getJsonFile(const fst::string& keyword) const {
         auto iter = m_jsonFile.find( keyword );
         if (iter == m_jsonFile.end())
             throw std::invalid_argument("Keyword " + keyword + " not loaded");
@@ -132,14 +129,14 @@ namespace Opm {
 
 
     void KeywordLoader::addKeyword(std::shared_ptr<ParserKeyword> keyword , const std::string& jsonFile) {
-        const std::string& name = keyword->getName();
+        const auto& name = keyword->getName();
 
         if (hasKeyword(name)) {
             m_keywords[name] = keyword;
             m_jsonFile[name] = jsonFile;
         } else {
-            m_keywords.insert( std::pair<std::string , std::shared_ptr<ParserKeyword> > (name , keyword) );
-            m_jsonFile.insert( std::pair<std::string , std::string> ( name , jsonFile));
+            m_keywords.emplace( name, keyword );
+            m_jsonFile.emplace( name, jsonFile );
         }
     }
 
@@ -161,11 +158,11 @@ namespace Opm {
             throw std::invalid_argument("Input argument is not a directory");
     }
 
-    std::map<std::string , std::shared_ptr<ParserKeyword> >::const_iterator KeywordLoader::keyword_begin( ) const {
+    std::map<fst::string , std::shared_ptr<ParserKeyword> >::const_iterator KeywordLoader::keyword_begin( ) const {
         return m_keywords.begin( );
     }
 
-    std::map<std::string , std::shared_ptr<ParserKeyword> >::const_iterator KeywordLoader::keyword_end( ) const {
+    std::map<fst::string , std::shared_ptr<ParserKeyword> >::const_iterator KeywordLoader::keyword_end( ) const {
         return m_keywords.end( );
     }
 

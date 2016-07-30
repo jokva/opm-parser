@@ -38,18 +38,18 @@ namespace Opm {
         return false;
     }
 
-    bool DeckView::hasKeyword( const std::string& keyword ) const {
+    bool DeckView::hasKeyword( const fst::string& keyword ) const {
         return this->keywordMap.find( keyword ) != this->keywordMap.end();
     }
 
-    const DeckKeyword& DeckView::getKeyword( const std::string& keyword, size_t index ) const {
+    const DeckKeyword& DeckView::getKeyword( const fst::string& keyword, size_t index ) const {
         if( !this->hasKeyword( keyword ) )
             throw std::invalid_argument("Keyword " + keyword + " not in deck.");
 
         return this->getKeyword( this->offsets( keyword ).at( index ) );
     }
 
-    const DeckKeyword& DeckView::getKeyword( const std::string& keyword ) const {
+    const DeckKeyword& DeckView::getKeyword( const fst::string& keyword ) const {
         if( !this->hasKeyword( keyword ) )
             throw std::invalid_argument("Keyword " + keyword + " not in deck.");
 
@@ -63,13 +63,13 @@ namespace Opm {
         return *( this->begin() + index );
     }
 
-    size_t DeckView::count( const std::string& keyword ) const {
+    size_t DeckView::count( const fst::string& keyword ) const {
         if( !this->hasKeyword( keyword ) ) return 0;
 
         return this->offsets( keyword ).size();
    }
 
-    const std::vector< const DeckKeyword* > DeckView::getKeywordList( const std::string& keyword ) const {
+    const std::vector< const DeckKeyword* > DeckView::getKeywordList( const fst::string& keyword ) const {
         if( !hasKeyword( keyword ) ) return {};
 
         const auto& indices = this->offsets( keyword );
@@ -102,7 +102,7 @@ namespace Opm {
     }
 
     static const std::vector< size_t > empty_indices = {};
-    const std::vector< size_t >& DeckView::offsets( const std::string& keyword ) const {
+    const std::vector< size_t >& DeckView::offsets( const fst::string& keyword ) const {
         if( !hasKeyword( keyword ) ) return empty_indices;
 
         return this->keywordMap.find( keyword )->second;
@@ -132,7 +132,7 @@ namespace Opm {
         Deck( std::vector< DeckKeyword >( ilist ) )
     {}
 
-    Deck::Deck( std::initializer_list< std::string > ilist ) :
+    Deck::Deck( std::initializer_list< fst::string > ilist ) :
         Deck( std::vector< DeckKeyword >( ilist.begin(), ilist.end() ) )
     {}
 
@@ -159,7 +159,7 @@ namespace Opm {
         return this->m_messageContainer;
     }
 
-    
+
     UnitSystem& Deck::getDefaultUnitSystem() {
         if( !this->defaultUnits ) this->initUnitSystem();
         return *this->defaultUnits;

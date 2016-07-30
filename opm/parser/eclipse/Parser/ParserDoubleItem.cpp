@@ -151,7 +151,7 @@ namespace Opm
         ParserItemInlineClassDeclaration<ParserDoubleItem,double>(this , os , indent , "double");
     }
 
-    std::string ParserDoubleItem::inlineClassInit(const std::string& parentClass) const {
+    std::string ParserDoubleItem::inlineClassInit(const fst::string& parentClass) const {
         return ParserItemInlineClassInit<ParserDoubleItem,int>(this ,  parentClass , "double");
     }
 

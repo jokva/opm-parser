@@ -51,7 +51,7 @@ namespace Opm {
     }
 
 
-    void ParserKeyword::commonInit(const std::string& name, ParserKeywordSizeEnum sizeType) {
+    void ParserKeyword::commonInit(const fst::string& name, ParserKeywordSizeEnum sizeType) {
         m_isTableCollection = false;
         m_name = name;
         m_keywordSizeType = sizeType;
@@ -61,12 +61,12 @@ namespace Opm {
         m_deckNames.insert(m_name);
     }
 
-    ParserKeyword::ParserKeyword(const std::string& name) {
+    ParserKeyword::ParserKeyword(const fst::string& name) {
         commonInit(name, FIXED);
     }
 
 
-    ParserKeyword::ParserKeyword(const std::string& name, const std::string& sizeKeyword, const std::string& sizeItem, bool _isTableCollection)
+    ParserKeyword::ParserKeyword(const fst::string& name, const std::string& sizeKeyword, const std::string& sizeItem, bool _isTableCollection)
     {
         commonInit( name , OTHER_KEYWORD_IN_DECK);
         m_isTableCollection = _isTableCollection;
@@ -77,7 +77,7 @@ namespace Opm {
         m_deckNames.clear();
     }
 
-    void ParserKeyword::addDeckName( const std::string& deckName ) {
+    void ParserKeyword::addDeckName( const fst::string& deckName ) {
         m_deckNames.insert(deckName);
     }
 
@@ -219,17 +219,6 @@ namespace Opm {
         const auto ok = []( char c ) { return std::isalnum( c ) || c == '_'; };
 
         return std::all_of( name.begin() + 1, name.end(), ok );
-    }
-
-    fst::string ParserKeyword::getDeckName( const string_view& str ) {
-
-        auto first_sep = std::find_if( str.begin(), str.end(), RawConsts::is_separator );
-
-        // only look at the first 8 characters (at most)
-        if( std::distance( str.begin(), first_sep ) < 9 )
-            return { str.begin(), first_sep };
-
-        return { str.begin(), str.begin() + 9 };
     }
 
     bool ParserKeyword::validDeckName( const fst::string& name ) {
@@ -437,11 +426,11 @@ namespace Opm {
     }
 
 
-    const std::string ParserKeyword::className() const {
+    const fst::string ParserKeyword::className() const {
         return getName();
     }
 
-    const std::string& ParserKeyword::getName() const {
+    const fst::string& ParserKeyword::getName() const {
         return m_name;
     }
 
@@ -449,11 +438,11 @@ namespace Opm {
         m_validSectionNames.clear();
     }
 
-    void ParserKeyword::addValidSectionName( const std::string& sectionName ) {
+    void ParserKeyword::addValidSectionName( const fst::string& sectionName ) {
         m_validSectionNames.insert(sectionName);
     }
 
-    bool ParserKeyword::isValidSection(const std::string& sectionName) const {
+    bool ParserKeyword::isValidSection(const fst::string& sectionName) const {
         return m_validSectionNames.size() == 0 || m_validSectionNames.count(sectionName) > 0;
     }
 
@@ -597,7 +586,7 @@ namespace Opm {
         {
             std::string local_indent = indent + "    ";
             ss << local_indent << className() << "();" << std::endl;
-            ss << local_indent << "static const std::string keywordName;" << std::endl;
+            ss << local_indent << "static const fst::string keywordName;" << std::endl;
             if (m_records.size() > 0 ) {
                 for (auto iter = recordBegin(); iter != recordEnd(); ++iter) {
                     std::shared_ptr<ParserRecord> record = *iter;
@@ -708,7 +697,7 @@ namespace Opm {
         }
         ss << "}" << std::endl;
 
-        ss << "const std::string " << className() << "::keywordName = \"" << getName() << "\";" << std::endl;
+        ss << "const fst::string " << className() << "::keywordName = \"" << getName() << "\";" << std::endl;
         for (auto iter = recordBegin(); iter != recordEnd(); ++iter) {
             std::shared_ptr<ParserRecord> record = *iter;
             for (size_t i = 0; i < record->size(); i++) {

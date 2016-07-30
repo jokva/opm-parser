@@ -30,6 +30,7 @@
 #include <opm/parser/eclipse/RawDeck/RawRecord.hpp>
 #include <opm/parser/eclipse/Deck/DeckItem.hpp>
 #include <opm/parser/eclipse/RawDeck/StarToken.hpp>
+#include <opm/fst.hpp>
 
 namespace Json {
     class JsonObject;
@@ -57,7 +58,7 @@ namespace Opm {
 
         virtual std::string createCode() const = 0;
         virtual void inlineClass(std::ostream& /* os */ , const std::string& indent) const = 0;
-        virtual std::string inlineClassInit(const std::string& parentClass) const = 0;
+        virtual std::string inlineClassInit(const fst::string& parentClass) const = 0;
 
         virtual ~ParserItem() {
         }
@@ -121,7 +122,7 @@ namespace Opm {
 
     template<typename ParserItemType, typename ValueType>
     std::string ParserItemInlineClassInit(const ParserItemType * self ,
-                                          const std::string& parentClass ,
+                                          const fst::string& parentClass ,
                                           const std::string& typeString ,
                                           const std::string * defaultValue = NULL) {
 

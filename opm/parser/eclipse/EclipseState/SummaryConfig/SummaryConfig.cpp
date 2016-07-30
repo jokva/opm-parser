@@ -84,7 +84,7 @@ namespace {
     all the way down here.
 */
 
-void handleMissingWell( const ParseContext& parseContext , const std::string& keyword, const std::string& well) {
+void handleMissingWell( const ParseContext& parseContext , const fst::string& keyword, const std::string& well) {
     std::string msg = std::string("Error in keyword:") + keyword + std::string(" No such well: ") + well;
     MessageContainer msgContainer;
     if (parseContext.get( ParseContext::SUMMARY_UNKNOWN_WELL) == InputError::WARN)
@@ -94,13 +94,20 @@ void handleMissingWell( const ParseContext& parseContext , const std::string& ke
 }
 
 
-void handleMissingGroup( const ParseContext& parseContext , const std::string& keyword, const std::string& group) {
+void handleMissingGroup( const ParseContext& parseContext , const fst::string& keyword, const std::string& group) {
     std::string msg = std::string("Error in keyword:") + keyword + std::string(" No such group: ") + group;
     MessageContainer msgContainer;
     if (parseContext.get( ParseContext::SUMMARY_UNKNOWN_GROUP) == InputError::WARN)
         std::cerr << "ERROR: " << msg << std::endl;
 
     parseContext.handleError( ParseContext::SUMMARY_UNKNOWN_GROUP , msgContainer , msg );
+}
+
+inline std::array< char, fst::string::len + 1 > get_c_str( const fst::string& str ) {
+    std::array< char, fst::string::len + 1 > c_str;
+    std::copy( str.begin(), str.end(), c_str.begin() );
+    c_str.back() = '\0';
+    return c_str;
 }
 
 inline void keywordW( std::vector< ERT::smspec_node >& list,
@@ -121,12 +128,13 @@ inline void keywordW( std::vector< ERT::smspec_node >& list,
 
     for( const std::string& pattern : patterns ) {
         auto wells = schedule.getWellsMatching( pattern );
+        auto kwname = get_c_str( keyword.name() );
 
         if( wells.empty() )
-            handleMissingWell( parseContext, keyword.name(), pattern );
+            handleMissingWell( parseContext, kwname.data(), pattern );
 
         for( const auto* well : wells )
-            list.emplace_back( type, well->name(), keyword.name() );
+            list.emplace_back( type, well->name(), kwname.data() );
     }
 }
 
@@ -140,8 +148,10 @@ inline void keywordG( std::vector< ERT::smspec_node >& list,
     if( keyword.size() == 0 ||
         !keyword.getDataRecord().getDataItem().hasValue( 0 ) ) {
 
-        for( const auto& group : schedule.getGroups() )
-            list.emplace_back( type, group->name(), keyword.name() );
+        for( const auto& group : schedule.getGroups() ) {
+            auto kwname = get_c_str( keyword.name() );
+            list.emplace_back( type, group->name(), kwname.data() );
+        }
 
         return;
     }
@@ -149,16 +159,18 @@ inline void keywordG( std::vector< ERT::smspec_node >& list,
     const auto& item = keyword.getDataRecord().getDataItem();
 
     for( const std::string& group : item.getData< std::string >() ) {
+        auto kwname = get_c_str( keyword.name() );
+
         if( schedule.hasGroup( group ) )
-            list.emplace_back( ECL_SMSPEC_GROUP_VAR, group, keyword.name() );
+            list.emplace_back( ECL_SMSPEC_GROUP_VAR, group, kwname.data() );
         else
-            handleMissingGroup( parseContext, keyword.name(), group );
+            handleMissingGroup( parseContext, kwname.data(), group );
     }
 }
 
 inline void keywordF( std::vector< ERT::smspec_node >& list,
                       const DeckKeyword& keyword ) {
-    list.emplace_back( keyword.name() );
+    list.emplace_back( get_c_str( keyword.name() ).data() );
 }
 
 inline std::array< int, 3 > dimensions( const EclipseGrid& grid ) {
@@ -183,7 +195,7 @@ inline void keywordB( std::vector< ERT::smspec_node >& list,
                       std::array< int, 3 > dims ) {
     for( const auto& record : keyword ) {
         auto ijk = getijk( record );
-        list.emplace_back( keyword.name(), dims.data(), ijk.data() );
+        list.emplace_back( get_c_str( keyword.name() ).data(), dims.data(), ijk.data() );
     }
 }
 
@@ -205,7 +217,7 @@ inline void keywordR( std::vector< ERT::smspec_node >& list,
                        : props.getRegions( "FIPNUM" );
 
     for( const int region : regions )
-        list.emplace_back( keyword.name(), dims.data(), region );
+        list.emplace_back( get_c_str( keyword.name() ).data(), dims.data(), region );
 }
 
 inline void keywordC( std::vector< ERT::smspec_node >& list,
@@ -214,7 +226,7 @@ inline void keywordC( std::vector< ERT::smspec_node >& list,
                       const Schedule& schedule,
                       std::array< int, 3 > dims ) {
 
-    const auto& keywordstring = keyword.name();
+    const auto& kwname = get_c_str( keyword.name() );
     const auto last_timestep = schedule.getTimeMap()->last();
 
     for( const auto& record : keyword ) {
@@ -241,13 +253,13 @@ inline void keywordC( std::vector< ERT::smspec_node >& list,
                 auto cijk = getijk( *completion );
 
                 if( record.getItem( 1 ).defaultApplied( 0 ) ) {
-                    list.emplace_back( keywordstring, name, dims.data(), cijk.data() );
+                    list.emplace_back( kwname.data(), name, dims.data(), cijk.data() );
                 }
                 else {
                     /* block coordinates specified */
                     auto recijk = getijk( record, 1 );
                     if( std::equal( recijk.begin(), recijk.end(), cijk.begin() ) )
-                        list.emplace_back( keywordstring, name, dims.data(), cijk.data() );
+                        list.emplace_back( kwname.data(), name, dims.data(), cijk.data() );
                 }
             }
         }
@@ -260,7 +272,8 @@ inline void handleKW( std::vector< ERT::smspec_node >& list,
                       const Eclipse3DProperties& props,
                       const ParseContext& parseContext,
                       std::array< int, 3 > n_xyz ) {
-    const auto var_type = ecl_smspec_identify_var_type( keyword.name().c_str() );
+
+    const auto var_type = ecl_smspec_identify_var_type( get_c_str( keyword.name() ).data() );
 
     switch( var_type ) {
         case ECL_SMSPEC_WELL_VAR: return keywordW( list, parseContext, keyword, schedule );

@@ -29,18 +29,18 @@ namespace Opm {
 
     static const std::string emptystr = "";
 
-    RawKeyword::RawKeyword(const string_view& name, Raw::KeywordSizeEnum sizeType , const std::string& filename, size_t lineNR) :
+    RawKeyword::RawKeyword( fst::string name, Raw::KeywordSizeEnum sizeType , const std::string& filename, size_t lineNR) :
         m_partialRecordString( emptystr )
     {
         if (sizeType == Raw::SLASH_TERMINATED || sizeType == Raw::UNKNOWN) {
-            commonInit(name.string(),filename,lineNR);
+            commonInit(name, filename,lineNR);
             m_sizeType = sizeType;
         } else
             throw std::invalid_argument("Error - invalid sizetype on input");
     }
 
-    RawKeyword::RawKeyword(const string_view& name , const std::string& filename, size_t lineNR , size_t inputSize, bool isTableCollection ) {
-        commonInit(name.string(),filename,lineNR);
+    RawKeyword::RawKeyword( fst::string name, const std::string& filename, size_t lineNR , size_t inputSize, bool isTableCollection ) {
+        commonInit(name, filename,lineNR);
         if (isTableCollection) {
             m_sizeType = Raw::TABLE_COLLECTION;
             m_numTables = inputSize;
@@ -55,7 +55,7 @@ namespace Opm {
     }
 
 
-    void RawKeyword::commonInit(const std::string& name , const std::string& filename, size_t lineNR) {
+    void RawKeyword::commonInit( fst::string name, const std::string& filename, size_t lineNR) {
         setKeywordName( name );
         m_filename = filename;
         m_lineNR = lineNR;
@@ -64,7 +64,7 @@ namespace Opm {
     }
 
 
-    const std::string& RawKeyword::getKeywordName() const {
+    const fst::string& RawKeyword::getKeywordName() const {
         return m_name;
     }
 
@@ -143,8 +143,8 @@ namespace Opm {
         return ParserKeyword::validDeckName( kw );
     }
 
-    void RawKeyword::setKeywordName(const std::string& name) {
-        m_name = boost::algorithm::trim_right_copy(name);
+    void RawKeyword::setKeywordName( fst::string name ) {
+        m_name = name;
         if (!isValidKeyword(m_name)) {
             throw std::invalid_argument("Not a valid keyword:" + name);
         } else if (m_name.size() > Opm::RawConsts::maxKeywordLength) {

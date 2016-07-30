@@ -106,7 +106,7 @@ namespace Opm {
     }
 
 
-    std::string ParserStringItem::inlineClassInit(const std::string& parentClass) const {
+    std::string ParserStringItem::inlineClassInit(const fst::string& parentClass) const {
         if (hasDefault()) {
             std::string quotedDefault = "\"" + getDefault() + "\"";
             return ParserItemInlineClassInit<ParserStringItem,std::string>(this ,  parentClass , "std::string" , &quotedDefault);

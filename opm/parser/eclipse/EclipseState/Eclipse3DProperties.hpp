@@ -54,18 +54,18 @@ namespace Opm {
 
 
         const GridProperty<int>& getRegion(const DeckItem& regionItem) const;
-        std::vector< int > getRegions( const std::string& keyword ) const;
+        std::vector< int > getRegions( const fst::string& keyword ) const;
         std::string getDefaultRegionKeyword() const;
 
-        const GridProperty<int>&      getIntGridProperty     ( const std::string& keyword ) const;
-        const GridProperty<double>&   getDoubleGridProperty  ( const std::string& keyword ) const;
+        const GridProperty<int>&      getIntGridProperty     ( const fst::string& keyword ) const;
+        const GridProperty<double>&   getDoubleGridProperty  ( const fst::string& keyword ) const;
 
         const GridProperties<int>& getIntProperties() const;
         const GridProperties<double>& getDoubleProperties() const;
 
-        bool hasDeckIntGridProperty(const std::string& keyword) const;
-        bool hasDeckDoubleGridProperty(const std::string& keyword) const;
-        bool supportsGridProperty(const std::string& keyword) const;
+        bool hasDeckIntGridProperty(const fst::string& keyword) const;
+        bool hasDeckDoubleGridProperty(const fst::string& keyword) const;
+        bool supportsGridProperty(const fst::string& keyword) const;
         MessageContainer getMessageContainer();
 
     private:

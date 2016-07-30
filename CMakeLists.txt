@@ -145,7 +145,8 @@ add_definitions("-DHAVE_CASE_SENSITIVE_FILESYSTEM=${HAVE_CASE_SENSITIVE_FILESYST
 include( Findopm-data )
 
 find_package(ERT)
-include_directories( ${ERT_INCLUDE_DIRS} )   
+include_directories( ${ERT_INCLUDE_DIRS} )
+include_directories( "fst/include" )
 
 set(LIBRARY_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/bin)

@@ -26,6 +26,7 @@
 #include <list>
 
 #include <opm/parser/eclipse/Utility/Stringview.hpp>
+#include <opm/fst.hpp>
 
 namespace Opm {
 
@@ -35,7 +36,7 @@ namespace Opm {
 
     class RawRecord {
     public:
-        RawRecord( const string_view&, const std::string& fileName = "", const std::string& keywordName = "");
+        RawRecord( const string_view&, const std::string& fileName = "", const fst::string& keywordName = "");
 
         inline string_view pop_front();
         void push_front(std::string token);
@@ -44,7 +45,7 @@ namespace Opm {
         std::string getRecordString() const;
         inline string_view getItem(size_t index) const;
         const std::string& getFileName() const;
-        const std::string& getKeywordName() const;
+        const fst::string& getKeywordName() const;
 
         static bool isTerminatedRecordString( const string_view& );
 
@@ -55,7 +56,7 @@ namespace Opm {
         std::deque< string_view > m_recordItems;
         std::list< std::string > expanded_items;
         const std::string m_fileName;
-        const std::string m_keywordName;
+        const fst::string m_keywordName;
 
         void setRecordString(const std::string& singleRecordString);
     };

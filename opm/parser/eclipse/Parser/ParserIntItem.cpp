@@ -115,7 +115,7 @@ namespace Opm {
     }
 
 
-    std::string ParserIntItem::inlineClassInit(const std::string& parentClass) const {
+    std::string ParserIntItem::inlineClassInit(const fst::string& parentClass) const {
         return ParserItemInlineClassInit<ParserIntItem,int>(this , parentClass , "int");
     }
 

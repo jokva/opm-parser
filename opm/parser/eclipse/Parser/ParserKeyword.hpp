@@ -45,11 +45,11 @@ namespace Opm {
 
     class ParserKeyword {
     public:
-        ParserKeyword(const std::string& name ,
+        ParserKeyword(const fst::string& name ,
                       const std::string& sizeKeyword ,
                       const std::string& sizeItem,
                       bool _isTableCollection = false);
-        explicit ParserKeyword(const std::string& name);
+        explicit ParserKeyword(const fst::string& name);
         explicit ParserKeyword(const Json::JsonObject& jsonConfig);
 
         void setFixedSize( size_t keywordSize);
@@ -62,7 +62,7 @@ namespace Opm {
         typedef std::set< fst::string > SectionNameSet;
 
 
-        static fst::string getDeckName(const string_view& rawString);
+        static fst::string getDeckName(const fst::string& rawString);
         static bool validInternalName(const std::string& name);
         static bool validDeckName(const fst::string& name);
         bool hasMatchRegex() const;
@@ -74,8 +74,8 @@ namespace Opm {
         std::shared_ptr< ParserRecord > getRecord(size_t recordIndex) const;
         std::vector<std::shared_ptr< ParserRecord >>::const_iterator recordBegin() const;
         std::vector<std::shared_ptr< ParserRecord >>::const_iterator recordEnd() const;
-        const std::string className() const;
-        const std::string& getName() const;
+        const fst::string className() const;
+        const fst::string& getName() const;
         size_t getFixedSize() const;
         bool hasFixedSize() const;
         bool isTableCollection() const;
@@ -84,13 +84,13 @@ namespace Opm {
 
         bool hasMultipleDeckNames() const;
         void clearDeckNames();
-        void addDeckName( const std::string& deckName );
+        void addDeckName( const fst::string& deckName );
         DeckNameSet::const_iterator deckNamesBegin() const;
         DeckNameSet::const_iterator deckNamesEnd() const;
 
         void clearValidSectionNames();
-        void addValidSectionName(const std::string& sectionName);
-        bool isValidSection(const std::string& sectionName) const;
+        void addValidSectionName(const fst::string& sectionName);
+        bool isValidSection(const fst::string& sectionName) const;
         SectionNameSet::const_iterator validSectionNamesBegin() const;
         SectionNameSet::const_iterator validSectionNamesEnd() const;
 
@@ -106,7 +106,7 @@ namespace Opm {
         void applyUnitsToDeck( Deck& deck, DeckKeyword& deckKeyword) const;
     private:
         std::pair<std::string,std::string> m_sizeDefinitionPair;
-        std::string m_name;
+        fst::string m_name;
         DeckNameSet m_deckNames;
         DeckNameSet m_validSectionNames;
         std::string m_matchRegexString;
@@ -124,7 +124,7 @@ namespace Opm {
         void initData( const Json::JsonObject& jsonConfig );
         void initSize( const Json::JsonObject& jsonConfig );
         void initSizeKeyword(const Json::JsonObject& sizeObject);
-        void commonInit(const std::string& name, ParserKeywordSizeEnum sizeType);
+        void commonInit(const fst::string& name, ParserKeywordSizeEnum sizeType);
         void addItems( const Json::JsonObject& jsonConfig);
         void initDoubleItemDimension( std::shared_ptr< ParserDoubleItem > item, const Json::JsonObject itemConfig);
     };

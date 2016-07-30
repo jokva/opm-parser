@@ -55,6 +55,7 @@
 #include <opm/parser/eclipse/EclipseState/Schedule/WellSet.hpp>
 #include <opm/parser/eclipse/Units/Dimension.hpp>
 #include <opm/parser/eclipse/Units/UnitSystem.hpp>
+#include <opm/fst.hpp>
 
 namespace Opm {
 
@@ -111,7 +112,7 @@ namespace Opm {
           consulted for the others.
         */
 
-        const std::map<std::string,bool> geoModifiers = {{"MULTFLT"  , true},
+        const std::map<fst::string,bool> geoModifiers = {{"MULTFLT"  , true},
                                                          {"MULTPV"   , false},
                                                          {"MULTX"    , false},
                                                          {"MULTX-"   , false},
@@ -424,7 +425,7 @@ namespace Opm {
                 updateWellStatus( *well , currentStep , status );
                 if (well->setProductionProperties(currentStep, properties))
                     m_events->addEvent( ScheduleEvents::PRODUCTION_UPDATE , currentStep);
-                
+
                 if ( !well->getAllowCrossFlow() && !isPredictionMode && (properties.OilRate + properties.WaterRate + properties.GasRate) == 0 ) {
 
                     std::string msg =

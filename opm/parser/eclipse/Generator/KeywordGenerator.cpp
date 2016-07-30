@@ -48,6 +48,7 @@ const std::string testHeader =
     "#include <opm/parser/eclipse/Parser/ParserDoubleItem.hpp>\n"
     "#include <opm/parser/eclipse/Parser/ParserRecord.hpp>\n"
     "#include <opm/parser/eclipse/Units/UnitSystem.hpp>\n"
+    "#include <opm/fst.hpp>\n\n\n"
     "using namespace Opm;\n"
     "std::shared_ptr<UnitSystem> unitSystem( UnitSystem::newMETRIC() );\n";
 
@@ -59,7 +60,8 @@ const std::string sourceHeader =
     "#include <opm/parser/eclipse/Parser/ParserDoubleItem.hpp>\n"
     "#include <opm/parser/eclipse/Parser/ParserRecord.hpp>\n"
     "#include <opm/parser/eclipse/Parser/Parser.hpp>\n"
-    "#include <opm/parser/eclipse/Parser/ParserKeywords.hpp>\n\n\n"
+    "#include <opm/parser/eclipse/Parser/ParserKeywords.hpp>\n"
+    "#include <opm/fst.hpp>\n\n\n"
     "namespace Opm {\n"
     "namespace ParserKeywords {\n\n";
 }
@@ -208,8 +210,10 @@ namespace Opm {
     }
 
 
-    std::string KeywordGenerator::startTest(const std::string& keyword_name) {
-        return std::string("BOOST_AUTO_TEST_CASE(TEST") + keyword_name + std::string("Keyword) {\n");
+    std::string KeywordGenerator::startTest(const fst::string& keyword_name) {
+        auto kwname = keyword_name;
+        std::replace( kwname.begin(), kwname.end(), ' ', '_' );
+        return std::string("BOOST_AUTO_TEST_CASE(TEST") + kwname + std::string("Keyword) {\n");
     }
 
 
@@ -224,7 +228,7 @@ namespace Opm {
 
         stream << testHeader;
         for (auto iter = loader.keyword_begin(); iter != loader.keyword_end(); ++iter) {
-            const std::string& keywordName = (*iter).first;
+            const auto& keywordName = (*iter).first;
             std::shared_ptr<ParserKeyword> keyword = (*iter).second;
             stream << startTest(keywordName);
             stream << "    std::string jsonFile = \"" << loader.getJsonFile( keywordName) << "\";" << std::endl;

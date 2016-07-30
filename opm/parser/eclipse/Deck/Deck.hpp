@@ -30,6 +30,7 @@
 #include <opm/parser/eclipse/Deck/DeckKeyword.hpp>
 #include <opm/parser/eclipse/Units/UnitSystem.hpp>
 #include <opm/parser/eclipse/Parser/MessageContainer.hpp>
+#include <opm/fst.hpp>
 
 #ifdef OPM_PARSER_DECK_API_WARNING
 #ifndef OPM_PARSER_DECK_API
@@ -60,14 +61,14 @@ namespace Opm {
             typedef std::vector< DeckKeyword >::const_iterator const_iterator;
 
             bool hasKeyword( const DeckKeyword& keyword ) const;
-            bool hasKeyword( const std::string& keyword ) const;
+            bool hasKeyword( const fst::string& keyword ) const;
             template< class Keyword >
             bool hasKeyword() const {
                 return hasKeyword( Keyword::keywordName );
             }
 
-            const DeckKeyword& getKeyword( const std::string& keyword, size_t index ) const;
-            const DeckKeyword& getKeyword( const std::string& keyword ) const;
+            const DeckKeyword& getKeyword( const fst::string& keyword, size_t index ) const;
+            const DeckKeyword& getKeyword( const fst::string& keyword ) const;
             const DeckKeyword& getKeyword( size_t index ) const;
             DeckKeyword& getKeyword( size_t index );
             template< class Keyword >
@@ -79,13 +80,13 @@ namespace Opm {
                 return getKeyword( Keyword::keywordName, index );
             }
 
-            const std::vector< const DeckKeyword* > getKeywordList( const std::string& keyword ) const;
+            const std::vector< const DeckKeyword* > getKeywordList( const fst::string& keyword ) const;
             template< class Keyword >
             const std::vector< const DeckKeyword* > getKeywordList() const {
                 return getKeywordList( Keyword::keywordName );
             }
 
-            size_t count(const std::string& keyword) const;
+            size_t count(const fst::string& keyword) const;
             size_t size() const;
 
             const_iterator begin() const;
@@ -94,7 +95,7 @@ namespace Opm {
         protected:
             void add( const DeckKeyword*, const_iterator, const_iterator );
 
-            const std::vector< size_t >& offsets( const std::string& ) const;
+            const std::vector< size_t >& offsets( const fst::string& ) const;
 
             DeckView( const_iterator first, const_iterator last );
             DeckView( std::pair< const_iterator, const_iterator > );
@@ -102,7 +103,7 @@ namespace Opm {
         private:
             const_iterator first;
             const_iterator last;
-            std::map< std::string, std::vector< size_t > > keywordMap;
+            std::map< fst::string, std::vector< size_t > > keywordMap;
 
     };
 
@@ -121,7 +122,7 @@ namespace Opm {
 
             Deck();
             Deck( std::initializer_list< DeckKeyword > );
-            Deck( std::initializer_list< std::string > );
+            Deck( std::initializer_list< fst::string > );
             void addKeyword( DeckKeyword&& keyword );
             void addKeyword( const DeckKeyword& keyword );
 

@@ -26,6 +26,8 @@
 #include <string>
 #include <vector>
 
+#include <opm/fst.hpp>
+
 namespace boost {
     namespace filesystem {
         class path;
@@ -41,9 +43,9 @@ namespace Opm {
     public:
         KeywordLoader(bool verbose);
         size_t size() const;
-        bool hasKeyword(const std::string& keyword) const;
+        bool hasKeyword(const fst::string& keyword) const;
         std::shared_ptr<const ParserKeyword> getKeyword(const std::string& keyword) const;
-        std::string getJsonFile(const std::string& keyword) const;
+        std::string getJsonFile(const fst::string& keyword) const;
         size_t loadKeywordDirectory(const std::string& pathname);
         size_t loadKeywordDirectory(boost::filesystem::path& path);
         void loadKeyword(const std::string& filename);
@@ -52,14 +54,14 @@ namespace Opm {
         static std::vector<std::string> sortSubdirectories( const std::string& directory );
         size_t loadMultipleKeywordDirectories(const std::string& directory);
 
-        std::map<std::string , std::shared_ptr<ParserKeyword> >::const_iterator keyword_begin( ) const;
-        std::map<std::string , std::shared_ptr<ParserKeyword> >::const_iterator keyword_end( ) const;
+        std::map<fst::string , std::shared_ptr<ParserKeyword> >::const_iterator keyword_begin( ) const;
+        std::map<fst::string , std::shared_ptr<ParserKeyword> >::const_iterator keyword_end( ) const;
     private:
         void addKeyword(std::shared_ptr<ParserKeyword> keyword , const std::string& jsonFile);
 
         bool m_verbose;
-        std::map<std::string , std::shared_ptr<ParserKeyword> > m_keywords;
-        std::map<std::string , std::string > m_jsonFile;
+        std::map<fst::string , std::shared_ptr<ParserKeyword> > m_keywords;
+        std::map<fst::string , std::string > m_jsonFile;
     };
 }
 

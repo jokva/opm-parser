@@ -23,6 +23,8 @@
 #include <string>
 #include <vector>
 
+#include <opm/fst.hpp>
+
 /*
   This class implemenents a class representing properties which are
   define over an ECLIPSE grid, i.e. with one value for each logical
@@ -48,13 +50,13 @@ class GridPropertySupportedKeywordInfo {
         using post = std::function< void( std::vector< T >& ) >;
 
         GridPropertySupportedKeywordInfo(
-            const std::string& name,
+            const fst::string& name,
             init initializer,
             post  postProcessor,
             const std::string& dimString );
 
         GridPropertySupportedKeywordInfo(
-                const std::string& name,
+                const fst::string& name,
                 init initializer,
                 const std::string& dimString);
 
@@ -62,24 +64,24 @@ class GridPropertySupportedKeywordInfo {
          * value for the grid property is just a constant.
          */
         GridPropertySupportedKeywordInfo(
-                const std::string& name,
+                const fst::string& name,
                 const T defaultValue,
                 const std::string& dimString );
 
         GridPropertySupportedKeywordInfo(
-                const std::string& name,
+                const fst::string& name,
                 const T defaultValue,
                 post postProcessor,
                 const std::string& dimString );
 
-        const std::string& getKeywordName() const;
+        const fst::string& getKeywordName() const;
         const std::string& getDimensionString() const;
         const init& initializer() const;
         const post& postProcessor() const;
 
     private:
 
-        std::string m_keywordName;
+        fst::string m_keywordName;
         init m_initializer;
         post m_postProcessor;
         std::string m_dimensionString;
@@ -131,7 +133,7 @@ public:
     void add( T shiftValue, const Box& );
     void setScalar( T value, const Box& );
 
-    const std::string& getKeywordName() const;
+    const fst::string& getKeywordName() const;
     const SupportedKeywordInfo& getKeywordInfo() const;
 
     /**

@@ -41,10 +41,10 @@ namespace Opm {
 
     class RawKeyword {
     public:
-        RawKeyword(const string_view& name , Raw::KeywordSizeEnum sizeType , const std::string& filename, size_t lineNR);
-        RawKeyword(const string_view& name , const std::string& filename, size_t lineNR , size_t inputSize , bool isTableCollection = false);
+        RawKeyword( fst::string name, Raw::KeywordSizeEnum sizeType , const std::string& filename, size_t lineNR);
+        RawKeyword( fst::string name, const std::string& filename, size_t lineNR , size_t inputSize , bool isTableCollection = false);
 
-        const std::string& getKeywordName() const;
+        const fst::string& getKeywordName() const;
         void addRawRecordString( const string_view& );
         size_t size() const;
         Raw::KeywordSizeEnum getSizeType() const;
@@ -80,7 +80,7 @@ namespace Opm {
         size_t m_fixedSize;
         size_t m_numTables;
         size_t m_currentNumTables = 0;
-        std::string m_name;
+        fst::string m_name;
         std::list< RawRecord > m_records;
         string_view m_partialRecordString;
 
@@ -88,8 +88,8 @@ namespace Opm {
         std::string m_filename;
         bool m_is_title = false;
 
-        void commonInit(const std::string& name,const std::string& filename, size_t lineNR);
-        void setKeywordName(const std::string& keyword);
+        void commonInit( fst::string name, const std::string& filename, size_t lineNR);
+        void setKeywordName( fst::string );
         static bool isValidKeyword(const fst::string& keywordCandidate);
     };
     typedef std::shared_ptr<RawKeyword> RawKeywordPtr;

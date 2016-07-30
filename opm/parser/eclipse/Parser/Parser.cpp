@@ -243,7 +243,7 @@ class ParserState {
 
     public:
         RawKeywordPtr rawKeyword;
-        string_view nextKeyword = emptystr;
+        fst::string nextKeyword = emptystr;
         Deck* deck;
         const ParseContext& parseContext;
 };
@@ -400,23 +400,21 @@ void ParserState::addPathAlias( const std::string& alias, const std::string& pat
     this->pathMap.emplace( alias, path );
 }
 
-std::shared_ptr< RawKeyword > createRawKeyword( const string_view& kw, ParserState& parserState, const Parser& parser ) {
-    auto keywordString = ParserKeyword::getDeckName( kw );
-
-    if( !parser.isRecognizedKeyword( keywordString ) ) {
-        if( ParserKeyword::validDeckName( keywordString ) ) {
-            std::string msg = "Keyword " + keywordString + " not recognized.";
+std::shared_ptr< RawKeyword > createRawKeyword( const fst::string& keyword, ParserState& parserState, const Parser& parser ) {
+    if( !parser.isRecognizedKeyword( keyword ) ) {
+        if( ParserKeyword::validDeckName( keyword ) ) {
+            std::string msg = "Keyword " + keyword + " not recognized.";
             auto& msgContainer = parserState.deck->getMessageContainer();
             parserState.parseContext.handleError( ParseContext::PARSE_UNKNOWN_KEYWORD, msgContainer, msg );
             return {};
         }
 
-        parserState.handleRandomText( keywordString );
+        parserState.handleRandomText( { keyword.begin(), keyword.end() } );
         return {};
 
     }
 
-    const auto* parserKeyword = parser.getParserKeywordFromDeckName( keywordString );
+    const auto* parserKeyword = parser.getParserKeywordFromDeckName( keyword );
 
     if( parserKeyword->getSizeType() == SLASH_TERMINATED || parserKeyword->getSizeType() == UNKNOWN) {
 
@@ -424,13 +422,13 @@ std::shared_ptr< RawKeyword > createRawKeyword( const string_view& kw, ParserSta
                                 ? Raw::SLASH_TERMINATED
                                 : Raw::UNKNOWN;
 
-        return std::make_shared< RawKeyword >( keywordString, rawSizeType,
+        return std::make_shared< RawKeyword >( keyword, rawSizeType,
                                                 parserState.current_path().string(),
                                                 parserState.line() );
     }
 
     if( parserKeyword->hasFixedSize() ) {
-        return std::make_shared< RawKeyword >( keywordString,
+        return std::make_shared< RawKeyword >( keyword,
                                                 parserState.current_path().string(),
                                                 parserState.line(),
                                                 parserKeyword->getFixedSize(),
@@ -444,7 +442,7 @@ std::shared_ptr< RawKeyword > createRawKeyword( const string_view& kw, ParserSta
         const auto& sizeDefinitionKeyword = deck->getKeyword(sizeKeyword.first);
         const auto& record = sizeDefinitionKeyword.getRecord(0);
         const auto targetSize = record.getItem( sizeKeyword.second ).get< int >( 0 );
-        return std::make_shared< RawKeyword >( keywordString,
+        return std::make_shared< RawKeyword >( keyword,
                                                 parserState.current_path().string(),
                                                 parserState.line(),
                                                 targetSize,
@@ -452,16 +450,16 @@ std::shared_ptr< RawKeyword > createRawKeyword( const string_view& kw, ParserSta
     }
 
     std::string msg = "Expected the kewyord: " + sizeKeyword.first
-                    + " to infer the number of records in: " + keywordString;
+                    + " to infer the number of records in: " + keyword;
     auto& msgContainer = parserState.deck->getMessageContainer();
     parserState.parseContext.handleError(ParseContext::PARSE_MISSING_DIMS_KEYWORD , msgContainer, msg );
 
-    const auto* keyword = parser.getKeyword( sizeKeyword.first );
-    const auto record = keyword->getRecord(0);
+    const auto* kw = parser.getKeyword( sizeKeyword.first );
+    const auto record = kw->getRecord(0);
     const auto int_item = std::dynamic_pointer_cast<const ParserIntItem>( record->get( sizeKeyword.second ) );
 
     const auto targetSize = int_item->getDefault( );
-    return std::make_shared< RawKeyword >( keywordString,
+    return std::make_shared< RawKeyword >( keyword,
                                             parserState.current_path().string(),
                                             parserState.line(),
                                             targetSize,
@@ -483,19 +481,19 @@ bool tryParseKeyword( ParserState& parserState, const Parser& parser ) {
         if( line.empty() && !parserState.rawKeyword ) continue;
         if( line.empty() && !parserState.rawKeyword->is_title() ) continue;
 
-        std::string keywordString;
-
         if( parserState.rawKeyword == NULL ) {
-            if( RawKeyword::isKeywordPrefix( line, keywordString ) ) {
+            if( RawKeyword::isKeywordPrefix( line ) ) {
+
+                fst::string keywordString( line.begin(), line.end() );
                 parserState.rawKeyword = createRawKeyword( keywordString, parserState, parser );
             } else
                 /* We are looking at some random gibberish?! */
                 parserState.handleRandomText( line );
         } else {
             if (parserState.rawKeyword->getSizeType() == Raw::UNKNOWN) {
-                if( parser.isRecognizedKeyword( line ) ) {
+                if( parser.isRecognizedKeyword( { line.begin(), line.end() } ) ) {
                     parserState.rawKeyword->finalizeUnknownSize();
-                    parserState.nextKeyword = line;
+                    parserState.nextKeyword = fst::string( line.begin(), line.end() );
                     return true;
                 }
             }
@@ -675,19 +673,19 @@ bool parseState( ParserState& parserState, const Parser& parser ) {
         return m_deckParserKeywords.size();
     }
 
-    const ParserKeyword* Parser::matchingKeyword(const string_view& name) const {
-        for (auto iter = m_wildCardKeywords.begin(); iter != m_wildCardKeywords.end(); ++iter) {
-            if (iter->second->matches(name))
-                return iter->second;
+    const ParserKeyword* Parser::matchingKeyword( const fst::string& name ) const {
+        for( const auto& wc : m_wildCardKeywords ) {
+            if( wc.second->matches( name ) )
+                return wc.second;
         }
         return nullptr;
     }
 
-    bool Parser::hasWildCardKeyword(const std::string& internalKeywordName) const {
+    bool Parser::hasWildCardKeyword(const fst::string& internalKeywordName) const {
         return (m_wildCardKeywords.count(internalKeywordName) > 0);
     }
 
-    bool Parser::isRecognizedKeyword(const string_view& name ) const {
+    bool Parser::isRecognizedKeyword( const fst::string& name ) const {
         if( !ParserKeyword::validDeckName( name ) )
             return false;
 
@@ -698,7 +696,7 @@ bool parseState( ParserState& parserState, const Parser& parser ) {
     }
 
 void Parser::addParserKeyword( std::unique_ptr< const ParserKeyword >&& parserKeyword) {
-    string_view name( parserKeyword->getName() );
+    const auto& name = parserKeyword->getName();
     auto* ptr = parserKeyword.get();
 
     /* Store the keywords in the keyword storage. They aren't free'd until the
@@ -738,16 +736,16 @@ void Parser::addParserKeyword(const Json::JsonObject& jsonKeyword) {
     addParserKeyword( std::unique_ptr< ParserKeyword >( new ParserKeyword( jsonKeyword ) ) );
 }
 
-bool Parser::hasKeyword( const std::string& name ) const {
-    return this->m_deckParserKeywords.find( string_view( name ) )
+bool Parser::hasKeyword( const fst::string& name ) const {
+    return this->m_deckParserKeywords.find( name )
         != this->m_deckParserKeywords.end();
 }
 
-const ParserKeyword* Parser::getKeyword( const std::string& name ) const {
-    return getParserKeywordFromDeckName( string_view( name ) );
+const ParserKeyword* Parser::getKeyword( const fst::string& name ) const {
+    return getParserKeywordFromDeckName( name );
 }
 
-const ParserKeyword* Parser::getParserKeywordFromDeckName(const string_view& name ) const {
+const ParserKeyword* Parser::getParserKeywordFromDeckName(const fst::string& name ) const {
     auto candidate = m_deckParserKeywords.find( name );
 
     if( candidate != m_deckParserKeywords.end() ) return candidate->second;
@@ -760,13 +758,13 @@ const ParserKeyword* Parser::getParserKeywordFromDeckName(const string_view& nam
     return wildCardKeyword;
 }
 
-std::vector<std::string> Parser::getAllDeckNames () const {
-    std::vector<std::string> keywords;
+std::vector< fst::string > Parser::getAllDeckNames () const {
+    std::vector<fst::string> keywords;
     for (auto iterator = m_deckParserKeywords.begin(); iterator != m_deckParserKeywords.end(); iterator++) {
-        keywords.push_back(iterator->first.string());
+        keywords.push_back(iterator->first);
     }
     for (auto iterator = m_wildCardKeywords.begin(); iterator != m_wildCardKeywords.end(); iterator++) {
-        keywords.push_back(iterator->first.string());
+        keywords.push_back(iterator->first);
     }
     return keywords;
 }
@@ -856,11 +854,11 @@ std::vector<std::string> Parser::getAllDeckNames () const {
             deckValid = false;
         }
 
-        std::string curSectionName = deck.getKeyword(0).name();
+        auto curSectionName = deck.getKeyword(0).name();
         size_t curKwIdx = 1;
         for (; curKwIdx < deck.size(); ++curKwIdx) {
             const auto& curKeyword = deck.getKeyword(curKwIdx);
-            const std::string& curKeywordName = curKeyword.name();
+            const auto& curKeywordName = curKeyword.name();
 
             if (!isSectionDelimiter( curKeyword )) {
                 if( !parser.isRecognizedKeyword( curKeywordName ) )

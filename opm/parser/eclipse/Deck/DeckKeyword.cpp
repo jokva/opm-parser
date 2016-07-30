@@ -23,7 +23,7 @@
 
 namespace Opm {
 
-    DeckKeyword::DeckKeyword(const std::string& keywordName) {
+    DeckKeyword::DeckKeyword(const fst::string& keywordName) {
         m_knownKeyword = true;
         m_keywordName = keywordName;
         m_isDataKeyword = false;
@@ -31,7 +31,7 @@ namespace Opm {
         m_lineNumber = -1;
     }
 
-    DeckKeyword::DeckKeyword(const std::string& keywordName, bool knownKeyword) {
+    DeckKeyword::DeckKeyword(const fst::string& keywordName, bool knownKeyword) {
         m_knownKeyword = knownKeyword;
         m_keywordName = keywordName;
         m_isDataKeyword = false;
@@ -61,7 +61,7 @@ namespace Opm {
     }
 
 
-    const std::string& DeckKeyword::name() const {
+    const fst::string& DeckKeyword::name() const {
         return m_keywordName;
     }
 

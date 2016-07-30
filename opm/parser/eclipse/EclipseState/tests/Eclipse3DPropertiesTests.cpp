@@ -263,7 +263,7 @@ BOOST_AUTO_TEST_CASE(DoubleIterator) {
     Opm::DeckPtr deck = createValidPERMXDeck();
     Setup s(deck);
     const auto& doubleProperties = s.props.getDoubleProperties();
-    std::vector<std::string> kw_list;
+    std::vector< fst::string > kw_list;
     for (const auto& prop : doubleProperties )
         kw_list.push_back( prop.getKeywordName() );
 
@@ -277,7 +277,7 @@ BOOST_AUTO_TEST_CASE(IntIterator) {
     Opm::DeckPtr deck = createValidPERMXDeck();
     Setup s(deck);
     const auto& intProperties = s.props.getIntProperties();
-    std::vector<std::string> kw_list;
+    std::vector<fst::string> kw_list;
     for (const auto& prop : intProperties )
         kw_list.push_back( prop.getKeywordName() );
 

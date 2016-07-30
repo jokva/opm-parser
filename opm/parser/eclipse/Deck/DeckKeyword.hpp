@@ -25,6 +25,7 @@
 #include <memory>
 
 #include <opm/parser/eclipse/Deck/DeckRecord.hpp>
+#include <opm/fst.hpp>
 
 namespace Opm {
     class ParserKeyword;
@@ -33,10 +34,10 @@ namespace Opm {
     public:
         typedef std::vector< DeckRecord >::const_iterator const_iterator;
 
-        DeckKeyword(const std::string& keywordName);
-        DeckKeyword(const std::string& keywordName, bool knownKeyword);
+        DeckKeyword(const fst::string& keywordName);
+        DeckKeyword(const fst::string& keywordName, bool knownKeyword);
 
-        const std::string& name() const;
+        const fst::string& name() const;
         void setLocation(const std::string& fileName, int lineNumber);
         const std::string& getFileName() const;
         int getLineNumber() const;
@@ -68,7 +69,7 @@ namespace Opm {
         const_iterator end() const;
 
     private:
-        std::string m_keywordName;
+        fst::string m_keywordName;
         std::string m_fileName;
         int m_lineNumber;
 
