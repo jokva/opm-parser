@@ -131,17 +131,16 @@ namespace Opm {
         return *m_records.begin();
     }
 
-    bool RawKeyword::isKeywordPrefix(const string_view& line, std::string& keyword ) {
+    bool RawKeyword::isKeywordPrefix( const string_view& line ) {
         // make the keyword string ALL_UPPERCASE because Eclipse seems
         // to be case-insensitive (although this is one of its
         // undocumented features...)
-        keyword = uppercase( ParserKeyword::getDeckName( line ).string() );
-
+        fst::string keyword{ line.begin(), line.end() };
         return isValidKeyword( keyword );
     }
 
-    bool RawKeyword::isValidKeyword(const std::string& keywordCandidate) {
-        return ParserKeyword::validDeckName(keywordCandidate);
+    bool RawKeyword::isValidKeyword( const fst::string& kw ) {
+        return ParserKeyword::validDeckName( kw );
     }
 
     void RawKeyword::setKeywordName(const std::string& name) {

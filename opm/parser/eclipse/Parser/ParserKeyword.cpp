@@ -202,7 +202,7 @@ namespace Opm {
     }
 
 
-    bool ParserKeyword::validNameStart( const string_view& name) {
+    bool ParserKeyword::validNameStart( const fst::string& name) {
         if (name.length() > ParserConst::maxKeywordLength)
             return false;
 
@@ -221,7 +221,7 @@ namespace Opm {
         return std::all_of( name.begin() + 1, name.end(), ok );
     }
 
-    string_view ParserKeyword::getDeckName( const string_view& str ) {
+    fst::string ParserKeyword::getDeckName( const string_view& str ) {
 
         auto first_sep = std::find_if( str.begin(), str.end(), RawConsts::is_separator );
 
@@ -232,7 +232,7 @@ namespace Opm {
         return { str.begin(), str.begin() + 9 };
     }
 
-    bool ParserKeyword::validDeckName( const string_view& name) {
+    bool ParserKeyword::validDeckName( const fst::string& name ) {
 
         if( !validNameStart( name ) )
             return false;
@@ -539,16 +539,16 @@ namespace Opm {
         }
     }
 
-    bool ParserKeyword::matches(const string_view& name ) const {
-        if (!validDeckName(name ))
+    bool ParserKeyword::matches( const fst::string& name ) const {
+
+        if( !validDeckName( name ) )
             return false;
 
-        else if( m_deckNames.count( name.string() ) )
+        else if( m_deckNames.count( name ) )
             return true;
 
-        else if (hasMatchRegex()) {
+        else if (hasMatchRegex())
             return boost::regex_match( name.begin(), name.end(), m_matchRegex);
-        }
 
         return false;
     }

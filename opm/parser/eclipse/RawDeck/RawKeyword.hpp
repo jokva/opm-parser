@@ -27,6 +27,7 @@
 
 #include <opm/parser/eclipse/RawDeck/RawEnums.hpp>
 #include <opm/parser/eclipse/Utility/Stringview.hpp>
+#include <opm/fst.hpp>
 
 namespace Opm {
 
@@ -53,7 +54,7 @@ namespace Opm {
         // iterator interface.
         const RawRecord& getFirstRecord( ) const;
 
-        static bool isKeywordPrefix(const string_view& line, std::string& keywordName);
+        static bool isKeywordPrefix( const string_view& );
 
         bool isPartialRecordStringEmpty() const;
         bool isFinished() const;
@@ -89,7 +90,7 @@ namespace Opm {
 
         void commonInit(const std::string& name,const std::string& filename, size_t lineNR);
         void setKeywordName(const std::string& keyword);
-        static bool isValidKeyword(const std::string& keywordCandidate);
+        static bool isValidKeyword(const fst::string& keywordCandidate);
     };
     typedef std::shared_ptr<RawKeyword> RawKeywordPtr;
     typedef std::shared_ptr<const RawKeyword> RawKeywordConstPtr;

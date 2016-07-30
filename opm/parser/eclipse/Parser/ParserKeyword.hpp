@@ -27,6 +27,7 @@
 
 #include <opm/parser/eclipse/EclipseState/Util/RecordVector.hpp>
 #include <opm/parser/eclipse/Parser/ParserEnums.hpp>
+#include <opm/fst.hpp>
 
 namespace Json {
     class JsonObject;
@@ -57,16 +58,16 @@ namespace Opm {
         void initSizeKeyword( const std::string& sizeKeyword, const std::string& sizeItem);
 
 
-        typedef std::set<std::string> DeckNameSet;
-        typedef std::set<std::string> SectionNameSet;
+        typedef std::set< fst::string > DeckNameSet;
+        typedef std::set< fst::string > SectionNameSet;
 
 
-        static string_view getDeckName(const string_view& rawString);
+        static fst::string getDeckName(const string_view& rawString);
         static bool validInternalName(const std::string& name);
-        static bool validDeckName(const string_view& name);
+        static bool validDeckName(const fst::string& name);
         bool hasMatchRegex() const;
         void setMatchRegex(const std::string& deckNameRegexp);
-        bool matches(const string_view& ) const;
+        bool matches(const fst::string& ) const;
         bool hasDimension() const;
         void addRecord(std::shared_ptr<ParserRecord> record);
         void addDataRecord(std::shared_ptr<ParserRecord> record);
@@ -116,7 +117,7 @@ namespace Opm {
         bool m_isTableCollection;
         std::string m_Description;
 
-        static bool validNameStart(const string_view& name);
+        static bool validNameStart(const fst::string& name);
         void initDeckNames( const Json::JsonObject& jsonConfig );
         void initSectionNames( const Json::JsonObject& jsonConfig );
         void initMatchRegex( const Json::JsonObject& jsonObject );
