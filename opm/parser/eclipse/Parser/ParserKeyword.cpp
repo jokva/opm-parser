@@ -540,8 +540,10 @@ namespace Opm {
         else if( m_deckNames.count( name ) )
             return true;
 
-        else if (hasMatchRegex())
-            return boost::regex_match( name.begin(), name.end(), m_matchRegex);
+        else if (hasMatchRegex()) {
+            auto end = std::find( name.begin(), name.end(), ' ' );
+            return boost::regex_match( name.begin(), end, m_matchRegex);
+        }
 
         return false;
     }

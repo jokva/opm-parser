@@ -280,7 +280,9 @@ BOOST_AUTO_TEST_CASE(summary_ALL) {
 
     std::vector<std::string> all;
 
-    for( std::string keyword: ALL_keywords ) {
+    for( fst::string kw : ALL_keywords ) {
+        std::string keyword( kw.begin(), kw.end() );
+
         if(keyword[0]=='F') {
             all.push_back(keyword);
         }
