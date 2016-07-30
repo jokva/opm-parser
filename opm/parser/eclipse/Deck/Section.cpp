@@ -34,15 +34,17 @@ namespace Opm {
 
     static bool isSectionDelimiter( const DeckKeyword& keyword ) {
         const auto& name = keyword.name();
-        for( const auto& x : { "RUNSPEC", "GRID", "EDIT", "PROPS",
-                               "REGIONS", "SOLUTION", "SUMMARY", "SCHEDULE" } )
+        fst::string delims[] = { "RUNSPEC", "GRID", "EDIT", "PROPS",
+                                 "REGIONS", "SOLUTION", "SUMMARY",
+                                 "SCHEDULE" };
+        for( const auto& x : delims )
             if( name == x ) return true;
 
         return false;
     }
 
     static std::pair< DeckView::const_iterator, DeckView::const_iterator >
-    find_section( const Deck& deck, const std::string& keyword ) {
+    find_section( const Deck& deck, const fst::string& keyword ) {
 
         const auto fn = [&keyword]( const DeckKeyword& kw ) {
             return kw.name() == keyword;
@@ -61,12 +63,12 @@ namespace Opm {
         return { first, last };
     }
 
-    Section::Section( const Deck& deck, const std::string& section )
+    Section::Section( const Deck& deck, const fst::string& section )
         : DeckView( find_section( deck, section ) ),
           section_name( section )
     {}
 
-    const std::string& Section::name() const {
+    const fst::string& Section::name() const {
         return this->section_name;
     }
 

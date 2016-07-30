@@ -38,7 +38,7 @@
 
 
 /*
-  This class implements a container (std::unordered_map<std::string ,
+  This class implements a container (std::unordered_map<fst::string ,
   Gridproperty<T>>) of Gridproperties. Usage is as follows:
 
     1. Instantiate the class; passing the number of grid cells and the

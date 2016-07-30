@@ -21,6 +21,7 @@
 #define	RAWCONSTS_HPP
 
 #include <string>
+#include <opm/fst.hpp>
 
 namespace Opm {
 
@@ -29,10 +30,10 @@ namespace Opm {
         const char slash = '/';
         const char quote = '\'';
         const std::string separators = "\t ";
-        const std::string include = "INCLUDE";
-        const std::string end = "END";
-        const std::string endinclude = "ENDINC";
-        const std::string paths = "PATHS";
+        const fst::string include = "INCLUDE";
+        const fst::string end = "END";
+        const fst::string endinclude = "ENDINC";
+        const fst::string paths = "PATHS";
         const unsigned int maxKeywordLength = 8;
 
         static inline bool is_separator( char ch ) {

@@ -53,13 +53,6 @@ BOOST_AUTO_TEST_CASE(RawKeywordFinalizeUnknownSize) {
     BOOST_CHECK( kw.isFinished() );
 }
 
-
-
-
-BOOST_AUTO_TEST_CASE(RawKeywordGiveKeywordToConstructorTooLongThrows) {
-    BOOST_CHECK_THROW(RawKeyword keyword("KEYYYWORD", Raw::SLASH_TERMINATED , "FILE" , 10U), std::invalid_argument);
-}
-
 BOOST_AUTO_TEST_CASE(RawKeywordSetKeywordInitialWhitespaceInKeywordThrows) {
     BOOST_CHECK_THROW(RawKeyword(" TELONG", Raw::SLASH_TERMINATED, "FILE" , 10U), std::invalid_argument);
 }

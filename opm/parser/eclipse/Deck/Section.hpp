@@ -20,9 +20,8 @@
 #ifndef SECTION_HPP
 #define SECTION_HPP
 
-#include <string>
-
 #include <opm/parser/eclipse/Deck/Deck.hpp>
+#include <opm/fst.hpp>
 
 namespace Opm {
 
@@ -33,8 +32,8 @@ class Section : public DeckView {
     public:
         using DeckView::const_iterator;
 
-        Section( const Deck& deck, const std::string& startKeyword );
-        const std::string& name() const;
+        Section( const Deck& deck, const fst::string& startKeyword );
+        const fst::string& name() const;
 
         static bool hasRUNSPEC( const Deck& );
         static bool hasGRID( const Deck& );
@@ -52,7 +51,7 @@ class Section : public DeckView {
                                          bool ensureKeywordSectionAffiliation = false);
 
     private:
-        std::string section_name;
+        fst::string section_name;
 
     };
 

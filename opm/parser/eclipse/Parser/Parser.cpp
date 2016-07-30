@@ -189,7 +189,7 @@ inline std::string clean( const std::string& str ) {
     return dst;
 }
 
-const std::string emptystr = "";
+const fst::string emptystr { "" };
 
 struct file {
     file( boost::filesystem::path p, const std::string& in ) :
@@ -403,7 +403,7 @@ void ParserState::addPathAlias( const std::string& alias, const std::string& pat
 std::shared_ptr< RawKeyword > createRawKeyword( const fst::string& keyword, ParserState& parserState, const Parser& parser ) {
     if( !parser.isRecognizedKeyword( keyword ) ) {
         if( ParserKeyword::validDeckName( keyword ) ) {
-            std::string msg = "Keyword " + keyword + " not recognized.";
+            std::string msg = "Keyword '" + keyword + "' not recognized.";
             auto& msgContainer = parserState.deck->getMessageContainer();
             parserState.parseContext.handleError( ParseContext::PARSE_UNKNOWN_KEYWORD, msgContainer, msg );
             return {};
@@ -467,7 +467,7 @@ std::shared_ptr< RawKeyword > createRawKeyword( const fst::string& keyword, Pars
 }
 
 bool tryParseKeyword( ParserState& parserState, const Parser& parser ) {
-    if (parserState.nextKeyword.length() > 0) {
+    if( parserState.nextKeyword != emptystr ) {
         parserState.rawKeyword = createRawKeyword( parserState.nextKeyword, parserState, parser );
         parserState.nextKeyword = emptystr;
     }
@@ -484,7 +484,8 @@ bool tryParseKeyword( ParserState& parserState, const Parser& parser ) {
         if( parserState.rawKeyword == NULL ) {
             if( RawKeyword::isKeywordPrefix( line ) ) {
 
-                fst::string keywordString( line.begin(), line.end() );
+                const auto end = std::find( line.begin(), line.end(), ' ' );
+                fst::string keywordString( line.begin(), end );
                 parserState.rawKeyword = createRawKeyword( keywordString, parserState, parser );
             } else
                 /* We are looking at some random gibberish?! */
@@ -493,7 +494,8 @@ bool tryParseKeyword( ParserState& parserState, const Parser& parser ) {
             if (parserState.rawKeyword->getSizeType() == Raw::UNKNOWN) {
                 if( parser.isRecognizedKeyword( { line.begin(), line.end() } ) ) {
                     parserState.rawKeyword->finalizeUnknownSize();
-                    parserState.nextKeyword = fst::string( line.begin(), line.end() );
+                    const auto end = std::find( line.begin(), line.end(), ' ' );
+                    parserState.nextKeyword = { line.begin(), end };
                     return true;
                 }
             }
@@ -686,11 +688,11 @@ bool parseState( ParserState& parserState, const Parser& parser ) {
     }
 
     bool Parser::isRecognizedKeyword( const fst::string& name ) const {
-        if( !ParserKeyword::validDeckName( name ) )
-            return false;
-
         if( m_deckParserKeywords.count( name ) )
             return true;
+
+        if( !ParserKeyword::validDeckName( name ) )
+            return false;
 
         return matchingKeyword( name );
     }
@@ -710,7 +712,7 @@ void Parser::addParserKeyword( std::unique_ptr< const ParserKeyword >&& parserKe
      *   first because we know that it will be kept around, i.e. we don't have to
      *   deal with subtle lifetime issues.
      * * It means we aren't reliant on some internal name mapping, and can only
-     * be concerned with interesting behaviour.
+     *   be concerned with interesting behaviour.
      * * Finally, these releases would in practice never happen anyway until
      *   the parser went out of scope, and now they'll also be cleaned up in the
      *   same sweep.

@@ -230,7 +230,11 @@ namespace Opm {
             return std::isalnum( c ) || c == '-' || c == '_' || c == '+';
         };
 
-        return std::all_of( name.begin() + 1, name.end(), valid );
+        const auto space = []( char c ) { return c == ' '; };
+        const auto end = std::find( name.begin() + 1, name.end(), ' ' );
+
+        return std::all_of( name.begin() + 1, end, valid )
+            && std::all_of( end, name.end(), space );
     }
 
     bool ParserKeyword::hasMultipleDeckNames() const {

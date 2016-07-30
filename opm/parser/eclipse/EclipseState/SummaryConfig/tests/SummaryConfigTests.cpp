@@ -77,8 +77,8 @@ static std::vector< std::string > sorted_names( const SummaryConfig& summary ) {
     return ret;
 }
 
-static std::vector< std::string > sorted_keywords( const SummaryConfig& summary ) {
-    std::vector< std::string > ret;
+static std::vector< fst::string > sorted_keywords( const SummaryConfig& summary ) {
+    std::vector< fst::string > ret;
     for( const auto& x : summary )
         ret.push_back( x.keyword() );
 

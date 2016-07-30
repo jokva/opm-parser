@@ -132,10 +132,8 @@ namespace Opm {
     }
 
     bool RawKeyword::isKeywordPrefix( const string_view& line ) {
-        // make the keyword string ALL_UPPERCASE because Eclipse seems
-        // to be case-insensitive (although this is one of its
-        // undocumented features...)
-        fst::string keyword{ line.begin(), line.end() };
+        const auto end = std::find( line.begin(), line.end(), ' ' );
+        fst::string keyword { line.begin(), end };
         return isValidKeyword( keyword );
     }
 
